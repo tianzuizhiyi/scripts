@@ -1,0 +1,31 @@
+name: Giant daily request
+
+on:
+  schedule:
+    # GitHub uses UTC: 00:00 UTC is 08:00 Asia/Shanghai.
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: giant-daily
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-giant.txt
+      - name: Submit daily request
+        run: python giant_daily.py
+        env:
+          GIANT_USER_ID: ${{ vars.GIANT_USER_ID || '7626347' }}
+          GIANT_TOKEN: ${{ secrets.GIANT_TOKEN }}
+          GIANT_COOKIE: ${{ secrets.GIANT_COOKIE }}
